@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+  # PostgreSQL with PostGIS extension
+  runner-tracker:
+    image: postgis/postgis:16-3.4
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: postgres-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - postgres-network
+
+  # # MinIO for object storage (S3 compatible)
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: loopie-minio
+  #   restart: always
+  #   environment:
+  #     MINIO_ROOT_USER: minioadmin
+  #     MINIO_ROOT_PASSWORD: minioadmin
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   volumes:
+  #     - minio_data:/data
+  #   command: server /data --console-address ":9001"
+  #   networks:
+  #     - loopie-network
+
+  # # MinIO Client for bucket creation
+  # minio-client:
+  #   image: minio/mc:latest
+  #   container_name: loopie-minio-client
+  #   depends_on:
+  #     - minio
+  #   entrypoint: >
+  #     /bin/sh -c "
+  #     sleep 5;
+  #     /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+  #     /usr/bin/mc rm -r --force myminio/loopie-images;
+  #     /usr/bin/mc mb myminio/loopies --ignore-existing;
+  #     /usr/bin/mc mb myminio/loopie-avatars --ignore-existing;
+  #     /usr/bin/mc mb myminio/loopie-voices --ignore-existing;
+  #     /usr/bin/mc mb myminio/loopie-thumbnails --ignore-existing;
+  #     /usr/bin/mc mb myminio/loopie-assets --ignore-existing;
+  #     /usr/bin/mc anonymous set public myminio/loopies;
+  #     /usr/bin/mc anonymous set public myminio/loopie-avatars;
+  #     /usr/bin/mc anonymous set public myminio/loopie-voices;
+  #     /usr/bin/mc anonymous set public myminio/loopie-thumbnails;
+  #     /usr/bin/mc anonymous set public myminio/loopie-assets;
+  #     exit 0;
+  #     "
+  #   networks:
+  #     - loopie-network
+
+  # # MailDev for SMTP testing
+  # maildev:
+  #   image: maildev/maildev:latest
+  #   container_name: loopie-maildev
+  #   restart: always
+  #   ports:
+  #     - "1080:1080" # Web UI
+  #     - "1025:1025" # SMTP
+  #   networks:
+  #     - loopie-network
+
+volumes:
+  postgres_data:
+
+networks:
+  postgres-network:
+    driver: bridge
